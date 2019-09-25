@@ -1,0 +1,29 @@
+{
+    // Veja https://go.microsoft.com/fwlink/?LinkId=733558 
+    // para a documentação sobre o formato tasks.json
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "type": "process",
+            "label": "Compilar Trabalho",
+            "command": "/usr/bin/gcc",
+            "args": [
+                "${file}",
+                "-o",
+                "${fileDirname}/${fileBasenameNoExtension}",
+                "-lglut",
+                "-lGL",
+                "-lGLU",
+                "-lm"
+            ],
+            "options": {},
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        }
+    ]
+}
