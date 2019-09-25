@@ -4,7 +4,6 @@
     // Para obter mais informações, visite: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
-
         {
             "name": "Trabalho CG",
             "type": "cppdbg",
@@ -15,14 +14,14 @@
             "cwd": "${workspaceFolder}",
             "environment": [],
             "externalConsole": false,
-        //    "MIMode": "gdb",
-        //     "setupCommands": [
-        //         {
-        //             "description": "Enable pretty-printing for gdb",
-        //             "text": "-enable-pretty-printing",
-        //             "ignoreFailures": true
-        //         }
-        //     ]
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": false
+                }
+            ]
         }
     ]
 }
