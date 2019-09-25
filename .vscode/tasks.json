@@ -10,7 +10,7 @@
             "args": [
                 "${file}",
                 "-o",
-                "${fileDirname}/${fileBasenameNoExtension}",
+                "${fileBasenameNoExtension}",
                 "-lglut",
                 "-lGL",
                 "-lGLU",
