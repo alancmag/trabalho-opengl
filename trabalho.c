@@ -21,8 +21,9 @@ void display(void)
 {
     int i;
     glClear(GL_COLOR_BUFFER_BIT);
-    glColor3f(0.0, 0.0, 0.0);
-    glBegin(GL_POLYGON);
+    glPointSize(5.0);
+    glBegin(GL_POINTS);
+    glColor3f(0.0, 255.0, 0.0);
     glVertex2f(0.25, 0.25);
     glVertex2f(0.75, 0.25);
     glVertex2f(0.75, 0.75);

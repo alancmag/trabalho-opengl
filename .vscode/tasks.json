@@ -8,13 +8,13 @@
             "label": "Compilar Trabalho",
             "command": "/usr/bin/gcc",
             "args": [
-                "${file}",
                 "-o",
                 "${fileBasenameNoExtension}",
-                "-lglut",
+                "${file}",
                 "-lGL",
                 "-lGLU",
-                "-lm"
+                "-lglut",
+                //"-lm"
             ],
             "options": {},
             "problemMatcher": [
