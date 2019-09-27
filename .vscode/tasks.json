@@ -14,7 +14,7 @@
                 "-lGL",
                 "-lGLU",
                 "-lglut",
-                //"-lm"
+                "-lm"
             ],
             "options": {},
             "problemMatcher": [
