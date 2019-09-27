@@ -5,6 +5,16 @@
 #include <stdarg.h>
 #include <math.h>
 
+/*
+Grupo 1:
+Alan,
+Hugo,
+Jônatas,
+Lucas,
+Vinicius
+*/
+
+
 /* Struct Vertex para implementar uma estrutura de dados de ponto */
 typedef struct vertex Vertex;
 struct vertex
