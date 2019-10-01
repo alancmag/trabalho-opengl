@@ -14,334 +14,282 @@ Lucas,
 Vinicius
 */
 
-
 /* Struct Vertex para implementar uma estrutura de dados de ponto */
 typedef struct vertex Vertex;
 struct vertex
 {
-    double x;
-    double y;
+    float x;
+    float y;
 };
+
 /*Definindo a struct das cores para facilitar*/
-typedef struct cores Cor;
-struct cores
+typedef struct cor Cor;
+struct cor
 {
     double RED;
     double GREEN;
     double BLUE;
 };
 
-void display_escala(void);
-void display_escala_relacao_origem(void);
-void display_translation(void);
-void display_rotation(void);
-void keyboard(unsigned char key, int x, int y);
-void drawPolygon(Cor *cor, int vertex_num, ...);
-Vertex *translate(Vertex *v_array, Vertex dv, int vertex_num, ...);
-Vertex *rotate(Vertex *v_array, int angulo, int vertex_num, ...);
-Vertex *escala(Vertex *v_array, Vertex ev, int vertex_num, ...);
-Vertex *escala_relacao_origem(Vertex *v_array, Vertex ev, int vertex_num, ...);
+Cor *AZUL;
+Cor *VERMELHO;
+Cor *VERDE;
 
-int main(int argc, char **argv)
+void drawPolygon(Cor *cor, int vertex_num, Vertex *v_array);
+void escala(Vertex *v_array, int vertex_num, Vertex v_escala);
+void rotate(Vertex *v_array, int vertex_num, int angulo);
+void translate(Vertex *v_array, int vertex_num, Vertex dv);
+
+void handleKeypress(unsigned char key, int x, int y)
 {
-    if (argc < 2)
+
+    switch (key)
+
     {
-        exit(2);
+
+    case 27:
+
+        exit(0);
     }
-    glutInit(&argc, argv);
-    glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB);
-    glutInitWindowSize(1000, 900);
-    glutInitWindowPosition(30, 30);
-    glutCreateWindow(argv[1]);
-    glClearColor(1.0, 1.0, 1.0, 0.0);
-    glShadeModel(GL_FLAT);
-    glOrtho(0, 1, 0, 1, -1, 1);
-    if (strcmp(argv[1], "e") == 0)
+}
+
+void initRendering()
+{
+
+    glEnable(GL_DEPTH_TEST);
+}
+
+void handleResize(GLsizei width, GLsizei height)
+{ // GLsizei for non-negative integer
+    // Compute aspect ratio of the new window
+    if (height == 0)
+        height = 1; // To prevent divide by 0
+    GLfloat aspect = (GLfloat)width / (GLfloat)height;
+
+    // Set the viewport to cover the new window
+    glViewport(0, 0, width, height);
+
+    // Set the aspect ratio of the clipping area to match the viewport
+    glMatrixMode(GL_PROJECTION); // To operate on the Projection matrix
+    glLoadIdentity();            // Reset the projection matrix
+    if (width >= height)
     {
-        glutDisplayFunc(display_escala);
-    }
-    else if (strcmp(argv[1], "eo") == 0)
-    {
-        printf(argv[1]);
-        glutDisplayFunc(display_escala_relacao_origem);
-    }
-    else if (strcmp(argv[1], "r") == 0)
-    {
-        glutDisplayFunc(display_rotation);
-    }
-    else if (strcmp(argv[1], "t") == 0)
-    {
-        glutDisplayFunc(display_translation);
+        // aspect >= 1, set the height from -1 to 1, with larger width
+        gluOrtho2D(-1.0 * aspect, 1.0 * aspect, -1.0, 1.0);
     }
     else
     {
-        printf("Entrada errada");
-        return 1;
+        // aspect < 1, set the width to -1 to 1, with larger height
+        gluOrtho2D(-1.0, 1.0, -1.0 / aspect, 1.0 / aspect);
     }
-
-    glutMainLoop();
-    return 0;
 }
-void display_translation(void)
-{
-    /* 
-    * Inicializa: 
-    * vetor de pontos -> v_array
-    * ponto de deslocamento -> dv
-    * vetor de pontos transladados -> v_array_t
-    */
-    Vertex v_array[] =
-        {
-            {.x = 0.25, .y = 0.25},
-            {.x = 0.75, .y = 0.25},
-            {.x = 0.75, .y = 0.75},
-            {.x = 0.25, .y = 0.75},
-        },
-           dv = {.x = -0.2, .y = 0.2}, // aumenta ou diminui o x ou y 
-               *v_array_t = (Vertex *)malloc(4 * sizeof(Vertex));
 
-    Cor *AZUL = (Cor *)calloc(1, sizeof(Cor));
-    (*AZUL).BLUE = 1;
-    Cor *VERMELHO = (Cor *)calloc(1, sizeof(Cor));
-    (*VERMELHO).RED = 1;
-    Cor *VERDE = (Cor *)calloc(1, sizeof(Cor));
-    (*VERDE).GREEN = 1;
-
-    glClear(GL_COLOR_BUFFER_BIT);
-    // Desenha o polígono antes de transladar
-    drawPolygon(AZUL, 4, v_array[0], v_array[1], v_array[2], v_array[3]);
-    // Translada usando o dv
-    v_array_t = translate(v_array_t, dv, 4, v_array[0], v_array[1], v_array[2], v_array[3]);
-    // Desenha o polígono transladado
-    drawPolygon(VERMELHO, 4, v_array_t[0], v_array_t[1], v_array_t[2], v_array_t[3]);
-
-    /* @ Debug para ver se os pontos foram transladados */
-    for (int i = 0; i < 4; i++)
-        printf("@ v_array_t[%d] = %lf\n", i, v_array_t[i]);
-
-    glFlush();
-}
-void display_rotation(void)
-{
-    /* 
-    * Inicializa: 
-    * vetor de pontos -> v_array
-    * ponto de deslocamento -> dv
-    * vetor de pontos rotacionados -> v_array_t
-    */
-    Vertex v_array[] =
-        {
-            {.x = 0.25, .y = 0.25},
-            {.x = 0.75, .y = 0.25},
-            {.x = 0.75, .y = 0.75},
-            {.x = 0.25, .y = 0.75},
-        },
-           *v_array_r = (Vertex *)malloc(4 * sizeof(Vertex));
-
-    int angulo = 25; // angulo para rotacionar em relação ao ponto central
-    Cor *AZUL = (Cor *)calloc(1, sizeof(Cor));
-    (*AZUL).BLUE = 1;
-    Cor *VERMELHO = (Cor *)calloc(1, sizeof(Cor));
-    (*VERMELHO).RED = 1;
-    Cor *VERDE = (Cor *)calloc(1, sizeof(Cor));
-    (*VERDE).GREEN = 1;
-
-    glClear(GL_COLOR_BUFFER_BIT);
-
-    // Desenha o polígono antes de rotacionar
-    drawPolygon(AZUL, 4, v_array[0], v_array[1], v_array[2], v_array[3]);
-    // rotate usando o rv
-    v_array_r = rotate(v_array_r, angulo, 4, v_array[0], v_array[1], v_array[2], v_array[3]);
-    // Desenha o polígono rotacionado
-    drawPolygon(VERMELHO, 4, v_array_r[0], v_array_r[1], v_array_r[2], v_array_r[3]);
-
-    /* @ Debug para ver se os pontos foram rotacionados */
-    for (int i = 0; i < 4; i++)
-        printf("@ v_array_t[%d] = %lf\n", i, v_array_r[i]);
-
-    glFlush();
-}
 void display_escala(void)
 {
-    /* 
-    * Inicializa: 
-    * vetor de pontos -> v_array
-    * ponto de deslocamento -> dv
-    * vetor de pontos escalados -> v_array_t
-    */
+    Vertex v_escala;
+
+    /* Array base das transformações*/
     Vertex v_array[] =
         {
-            {.x = 0.25, .y = 0.25},
-            {.x = 0.75, .y = 0.25},
+            {.x = -0.25, .y = -0.25},
+            {.x = 0.75, .y = -0.25},
             {.x = 0.75, .y = 0.75},
-            {.x = 0.25, .y = 0.75},
-        },
-           dv = {.x = 1.5, .y = 0.5}, //
-               *v_array_t = (Vertex *)malloc(4 * sizeof(Vertex));
+            {.x = -0.25, .y = 0.75},
+        };
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glClearColor(1.0, 1.0, 1.0, 0.0);
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
 
-    Cor *AZUL = (Cor *)calloc(1, sizeof(Cor));
-    (*AZUL).BLUE = 1;
-    Cor *VERMELHO = (Cor *)calloc(1, sizeof(Cor));
-    (*VERMELHO).RED = 1;
-    Cor *VERDE = (Cor *)calloc(1, sizeof(Cor));
-    (*VERDE).GREEN = 1;
+    // Desenha primeiro quadrado AZUL
+    drawPolygon(AZUL, 4, v_array);
+    // Seta o vertex da escala pra reduzir pela metade o X e o Y do quadrado
+    v_escala.x = 0.5, v_escala.y = 0.5;
+    // Aplica a escala no array
+    escala(v_array, 4, v_escala);
+    // Desenha o quadrado escalado em VERDE
+    drawPolygon(VERDE, 4, v_array);
 
-    glClear(GL_COLOR_BUFFER_BIT);
-    // Desenha o polígono antes de escalar
-    drawPolygon(AZUL, 4, v_array[0], v_array[1], v_array[2], v_array[3]);
-    // escala usando o vd
-    v_array_t = escala(v_array_t, dv, 4, v_array[0], v_array[1], v_array[2], v_array[3]);
-    // Desenha o polígono escalado
-    drawPolygon(VERMELHO, 4, v_array_t[0], v_array_t[1], v_array_t[2], v_array_t[3]);
-
-    /* @ Debug para ver se os pontos foram escalados */
-    for (int i = 0; i < 4; i++)
-        printf("@ v_array_t[%d] = %lf\n", i, v_array_t[i]);
-
-    glFlush();
+    glutSwapBuffers();
 }
-void display_escala_relacao_origem(void)
+
+void display_translate(void)
 {
-    /* 
-    * Inicializa: 
-    * vetor de pontos -> v_array
-    * ponto de deslocamento -> dv
-    * vetor de pontos escalados -> v_array_t
-    */
+    Vertex v_translacao;
+
+    /* Array base das transformações*/
     Vertex v_array[] =
         {
-            {.x = 0.25, .y = 0.25},
-            {.x = 0.75, .y = 0.25},
+            {.x = -0.25, .y = -0.25},
+            {.x = 0.75, .y = -0.25},
             {.x = 0.75, .y = 0.75},
-            {.x = 0.25, .y = 0.75},
-        },
-           dv = {.x = 0.2, .y = 0.2}, // escala mas a figura muda de lugar em relação a origem
-               *v_array_t = (Vertex *)malloc(4 * sizeof(Vertex));
+            {.x = -0.25, .y = 0.75},
+        };
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glClearColor(1.0, 1.0, 1.0, 0.0);
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
 
-    Cor *AZUL = (Cor *)calloc(1, sizeof(Cor));
-    (*AZUL).BLUE = 1;
-    Cor *VERMELHO = (Cor *)calloc(1, sizeof(Cor));
-    (*VERMELHO).RED = 1;
-    Cor *VERDE = (Cor *)calloc(1, sizeof(Cor));
-    (*VERDE).GREEN = 1;
+    // Desenha primeiro quadrado AZUL
+    drawPolygon(AZUL, 4, v_array);
+    // Seta o vertex da translação para descer em X e Y
+    v_translacao.x = -0.5, v_translacao.y = -0.5;
+    // Aplica a translação no array
+    translate(v_array, 4, v_translacao);
+    // Desenha o quadrado tranaladado em VERDE
+    drawPolygon(VERDE, 4, v_array);
 
-    glClear(GL_COLOR_BUFFER_BIT);
-    //glColor3f(1.0, 0.0, 0.0);
-    // Desenha o polígono antes de transladar
-    drawPolygon(AZUL, 4, v_array[0], v_array[1], v_array[2], v_array[3]);
-    // Translada usando o vd
-    v_array_t = escala_relacao_origem(v_array_t, dv, 4, v_array[0], v_array[1], v_array[2], v_array[3]);
-    // Desenha o polígono transladado
-    drawPolygon(VERMELHO, 4, v_array_t[0], v_array_t[1], v_array_t[2], v_array_t[3]);
-
-    /* @ Debug para ver se os pontos foram escalados */
-    for (int i = 0; i < 4; i++)
-        printf("@ v_array_t[%d] = %lf\n", i, v_array_t[i]);
-
-    glFlush();
+    glutSwapBuffers();
 }
 
-Vertex *translate(Vertex *v_array, Vertex dv, int vertex_num, ...)
+void display_rotacao(void)
 {
-    va_list vertex_list;
 
-    va_start(vertex_list, vertex_num);
-    for (int i = 0; i < vertex_num; i++)
-    {
-        v_array[i] = va_arg(vertex_list, Vertex);
-        v_array[i].x += dv.x;
-        v_array[i].y += dv.y;
-    }
-    va_end(vertex_list);
-    return v_array;
+    /* Array base das transformações*/
+    Vertex v_array[] =
+        {
+            {.x = -0.25, .y = -0.25},
+            {.x = 0.75, .y = -0.25},
+            {.x = 0.75, .y = 0.75},
+            {.x = -0.25, .y = 0.75},
+        };
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glClearColor(1.0, 1.0, 1.0, 0.0);
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+
+    // Desenha primeiro quadrado AZUL
+    drawPolygon(AZUL, 4, v_array);
+    // Seta o vertex da escala pra reduzir pela metade o X e o Y do quadrado
+    int angulo = 45;
+    // Aplica a escala no array
+    rotate(v_array, 4, angulo);
+    // Desenha o quadrado escalado em VERDE
+    drawPolygon(VERDE, 4, v_array);
+
+    glutSwapBuffers();
 }
 
-Vertex *rotate(Vertex *v_array, int angulo, int vertex_num, ...)
+/* Escala o objeto no lugar, ele fica centralizado*/
+void escala(Vertex *v_array, int vertex_num, Vertex v_escala)
 {
-    int i;
-    va_list vertex_list;
     Vertex mid_vertex;
-
-    va_start(vertex_list, vertex_num);
-
-    for (i = 0; i < vertex_num; i++)
-        v_array[i] = va_arg(vertex_list, Vertex);
-
     mid_vertex.x = mid_vertex.y = (v_array[1].x + v_array[1].y) / 2; // Ponto central da figura
-
-    for (i = 0; i < vertex_num; i++)
-    {
-        /* Translada os pontos para em torno da  origem */
-        v_array[i].x = v_array[i].x - mid_vertex.x;
-        v_array[i].y = v_array[i].y - mid_vertex.y;
-        /* Rotaciona os pontos */
-        v_array[i].x = (v_array[i].x * cos(angulo * (3.14 / 180))) - (v_array[i].y * sin(angulo * (3.14 / 180)));
-        v_array[i].y = (v_array[i].y * cos(angulo * (3.14 / 180))) + (v_array[i].x * sin(angulo * (3.14 / 180)));
-        /* Retorna os pontos para sua posição original */
-        v_array[i].x = v_array[i].x + mid_vertex.x;
-        v_array[i].y = v_array[i].y + mid_vertex.y;
-    }
-
-    return v_array;
-}
-Vertex *escala(Vertex *v_array, Vertex ev, int vertex_num, ...)
-{
-    va_list vertex_list;
-    Vertex mid_vertex;
-
-    va_start(vertex_list, vertex_num);
-
-    for (int i = 0; i < vertex_num; i++)
-        v_array[i] = va_arg(vertex_list, Vertex);
-
-    mid_vertex.x = mid_vertex.y = (v_array[1].x + v_array[1].y) / 2; // Ponto central da figura
-
     for (int i = 0; i < vertex_num; i++)
     {
+
         /* Translada os pontos  */
         v_array[i].x -= mid_vertex.x;
         v_array[i].y -= mid_vertex.y;
         /* Escala os pontos */
-        v_array[i].x *= ev.x;
-        v_array[i].y *= ev.y;
+        v_array[i].x *= v_escala.x;
+        v_array[i].y *= v_escala.y;
         /* Retorna os pontos para sua posição original */
         v_array[i].x += mid_vertex.x;
         v_array[i].y += mid_vertex.y;
     }
-
-    va_end(vertex_list);
-    return v_array;
 }
 
-Vertex *escala_relacao_origem(Vertex *v_array, Vertex ev, int vertex_num, ...)
+/* Escala que move o objeto de lugar*/
+void escala_relacao_origem(Vertex *v_array, int vertex_num, Vertex v_escala)
 {
-    va_list vertex_list;
-
-    va_start(vertex_list, vertex_num);
     for (int i = 0; i < vertex_num; i++)
     {
-        v_array[i] = va_arg(vertex_list, Vertex);
-        v_array[i].x *= ev.x;
-        v_array[i].y *= ev.y;
+        v_array[i].x *= v_escala.x;
+        v_array[i].y *= v_escala.y;
     }
-    va_end(vertex_list);
-    return v_array;
 }
 
-void drawPolygon(Cor *cor, int vertex_num, ...)
+void rotate(Vertex *v_array, int vertex_num, int angulo)
 {
-    Vertex *v_array;
-    va_list vertex_list;
+    Vertex mid_vertex, temp;
+    mid_vertex.x = mid_vertex.y = (v_array[1].x + v_array[1].y) / 2; // Ponto central da figura
 
-    va_start(vertex_list, vertex_num);
-    v_array = (Vertex *)malloc(vertex_num * sizeof(Vertex));
-    glBegin(GL_POLYGON);
-    glColor3f((*cor).RED, (*cor).GREEN, (*cor).BLUE);
     for (int i = 0; i < vertex_num; i++)
     {
-        v_array[i] = va_arg(vertex_list, Vertex);
-        glVertex2d(v_array[i].x, v_array[i].y);
+        /* Translada os pontos para em torno da  origem */
+        v_array[i].x -= mid_vertex.x;
+        v_array[i].y -= mid_vertex.y;
+        temp = v_array[i];
+        /* Rotaciona os pontos */
+        v_array[i].x = (temp.x * cos(angulo * (3.14 / 180))) - (temp.y * sin(angulo * (3.14 / 180)));
+        v_array[i].y = (temp.y * cos(angulo * (3.14 / 180))) + (temp.x * sin(angulo * (3.14 / 180)));
+        /* Retorna os pontos para sua posição original */
+        v_array[i].x += mid_vertex.x;
+        v_array[i].y += mid_vertex.y;
+    }
+}
+
+void translate(Vertex *v_array, int vertex_num, Vertex v_translate)
+{
+    for (int i = 0; i < vertex_num; i++)
+    {
+        v_array[i].x += v_translate.x;
+        v_array[i].y += v_translate.y;
+    }
+}
+
+int main(int argc, char **argv)
+{
+    /*Definindo as cores para facilitar    */
+
+    AZUL = (Cor *)calloc(1, sizeof(Cor));
+    VERMELHO = (Cor *)calloc(1, sizeof(Cor));
+    VERDE = (Cor *)calloc(1, sizeof(Cor));
+    (*AZUL).BLUE = 1;
+    (*VERMELHO).RED = 1;
+    (*VERDE).GREEN = 1;
+
+    glutInit(&argc, argv);
+    initRendering();
+    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
+
+    // Cria a primeira janela
+    glutInitWindowSize(700, 600);
+    glutCreateWindow("ESCALA");
+    glClearColor(1.0, 1.0, 1.0, 0.0);
+    // Registrar os callbacks
+    glutDisplayFunc(display_escala);
+    glutKeyboardFunc(handleKeypress);
+    glutReshapeFunc(handleResize);
+
+    // Cria a segunda janela
+    glutCreateWindow("ROTACAO");
+    glClearColor(1.0, 1.0, 1.0, 0.0);
+    //define a window position for second window
+    glutPositionWindow(540, 40);
+    // Registrar os callbacks
+    glutReshapeFunc(handleResize);
+    glutDisplayFunc(display_rotacao);
+    glutKeyboardFunc(handleKeypress);
+
+    // Cria a terceira janela
+    glutCreateWindow("TRANSLACAO");
+    glClearColor(1.0, 1.0, 1.0, 0.0);
+    //define a window position for second window
+    glutPositionWindow(540, 60);
+    // Registrar os callbacks
+    glutReshapeFunc(handleResize);
+    glutDisplayFunc(display_translate);
+    glutKeyboardFunc(handleKeypress);
+
+    glutMainLoop();
+
+    free(AZUL);
+    free(VERDE);
+    free(VERMELHO);
+    return 0;
+}
+
+void drawPolygon(Cor *cor, int vertex_num, Vertex *v_array)
+{
+    // Define um poligono, pois não se sabe quantos vertices serão passados
+    glBegin(GL_POLYGON);
+    glColor3d((*cor).RED, (*cor).GREEN, (*cor).BLUE);
+
+    for (int i = 0; i < vertex_num; i++)
+    {
+        glVertex2f(v_array[i].x, v_array[i].y);
     }
     glEnd();
-    va_end(vertex_list);
 }
