@@ -160,11 +160,11 @@ void display_rotacao(void)
 
     // Desenha primeiro quadrado AZUL
     drawPolygon(AZUL, 4, v_array);
-    // Seta o vertex da escala pra reduzir pela metade o X e o Y do quadrado
+    // Seta o vertex da rotacionado pra reduzir pela metade o X e o Y do quadrado
     int angulo = 45;
     // Aplica a escala no array
     rotate(v_array, 4, angulo);
-    // Desenha o quadrado escalado em VERDE
+    // Desenha o quadrado rotacionado em VERDE
     drawPolygon(VERDE, 4, v_array);
 
     glutSwapBuffers();
