@@ -1,5 +1,4 @@
 #include <GL/glut.h>
-#include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdarg.h>
@@ -18,8 +17,8 @@ Vinicius
 typedef struct vertex Vertex;
 struct vertex
 {
-    float x;
-    float y;
+    double x;
+    double y;
 };
 
 /*Definindo a struct das cores para facilitar*/
@@ -39,6 +38,7 @@ void drawPolygon(Cor *cor, int vertex_num, Vertex *v_array);
 void escala(Vertex *v_array, int vertex_num, Vertex v_escala);
 void rotate(Vertex *v_array, int vertex_num, int angulo);
 void translate(Vertex *v_array, int vertex_num, Vertex dv);
+char *monta_nome_janela(const char *funcao, Vertex *v_transf, int angulo);
 
 void handleKeypress(unsigned char key, int x, int y)
 {
@@ -105,18 +105,22 @@ void display_escala(void)
     drawPolygon(AZUL, 4, v_array);
     // Seta o vertex da escala pra reduzir pela metade o X e o Y do quadrado
     v_escala.x = 0.5, v_escala.y = 0.5;
+
+    // Muda o titulo da janela pra mostrar os parametros que gerou a figura
+    char *titulo = monta_nome_janela("ESCALA", &v_escala, 0);
+    glutSetWindowTitle(titulo);
     // Aplica a escala no array
     escala(v_array, 4, v_escala);
     // Desenha o quadrado escalado em VERDE
     drawPolygon(VERDE, 4, v_array);
 
     glutSwapBuffers();
+    free(titulo);
 }
 
 void display_translate(void)
 {
     Vertex v_translacao;
-
     /* Array base das transformações*/
     Vertex v_array[] =
         {
@@ -133,13 +137,25 @@ void display_translate(void)
     // Desenha primeiro quadrado AZUL
     drawPolygon(AZUL, 4, v_array);
     // Seta o vertex da translação para descer em X e Y
-    v_translacao.x = -0.5, v_translacao.y = -0.5;
+    v_translacao.x = -0.4, v_translacao.y = -0.3;
+
+    // Muda o titulo da janela pra mostrar os parametros que gerou a figura
+    char *titulo = monta_nome_janela("TRANSLACAO", &v_translacao, 0);
+    glutSetWindowTitle(titulo);
+
     // Aplica a translação no array
     translate(v_array, 4, v_translacao);
-    // Desenha o quadrado tranaladado em VERDE
+    // Desenha o quadrado transladado
     drawPolygon(VERDE, 4, v_array);
 
+    // Seta o vertex da translação para descer em X e Y
+    v_translacao.x = -0.4, v_translacao.y = -0.3;
+    // Aplica a translação no array
+    translate(v_array, 4, v_translacao);
+    // Desenha o quadrado tranala
+    drawPolygon(VERMELHO, 4, v_array);
     glutSwapBuffers();
+    free(titulo);
 }
 
 void display_rotacao(void)
@@ -153,6 +169,12 @@ void display_rotacao(void)
             {.x = 0.75, .y = 0.75},
             {.x = -0.25, .y = 0.75},
         };
+    int angulo = 45;
+
+    // Muda o titulo da janela pra mostrar os parametros que gerou a figura
+    char *titulo = monta_nome_janela("ROTACAO", NULL, angulo);
+    glutSetWindowTitle(titulo);
+
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glClearColor(1.0, 1.0, 1.0, 0.0);
     glMatrixMode(GL_MODELVIEW);
@@ -160,14 +182,13 @@ void display_rotacao(void)
 
     // Desenha primeiro quadrado AZUL
     drawPolygon(AZUL, 4, v_array);
-    // Seta o vertex da rotacionado pra reduzir pela metade o X e o Y do quadrado
-    int angulo = 45;
-    // Aplica a escala no array
-    rotate(v_array, 4, angulo);
+    // Aplica a rotação no array
+    rotate(v_array, 4, -angulo);
     // Desenha o quadrado rotacionado em VERDE
     drawPolygon(VERDE, 4, v_array);
 
     glutSwapBuffers();
+    free(titulo);
 }
 
 /* Escala o objeto no lugar, ele fica centralizado*/
@@ -200,9 +221,12 @@ void escala_relacao_origem(Vertex *v_array, int vertex_num, Vertex v_escala)
     }
 }
 
+/* Rotaciona o objeto em torno da origem 0,0*/
 void rotate(Vertex *v_array, int vertex_num, int angulo)
 {
     Vertex mid_vertex, temp;
+    double coss = cos(angulo * (3.14159265359 / 180)); // Para calcular em radianos
+    double seno = sin(angulo * (3.14159265359 / 180));
     mid_vertex.x = mid_vertex.y = (v_array[1].x + v_array[1].y) / 2; // Ponto central da figura
 
     for (int i = 0; i < vertex_num; i++)
@@ -212,14 +236,15 @@ void rotate(Vertex *v_array, int vertex_num, int angulo)
         v_array[i].y -= mid_vertex.y;
         temp = v_array[i];
         /* Rotaciona os pontos */
-        v_array[i].x = (temp.x * cos(angulo * (3.14 / 180))) - (temp.y * sin(angulo * (3.14 / 180)));
-        v_array[i].y = (temp.y * cos(angulo * (3.14 / 180))) + (temp.x * sin(angulo * (3.14 / 180)));
+        v_array[i].x = (temp.x * coss) - (temp.y * seno);
+        v_array[i].y = (temp.y * coss) + (temp.x * seno);
         /* Retorna os pontos para sua posição original */
         v_array[i].x += mid_vertex.x;
         v_array[i].y += mid_vertex.y;
     }
 }
 
+/* Translada o objeto aumentando/diminuindo o X e/ou Y*/
 void translate(Vertex *v_array, int vertex_num, Vertex v_translate)
 {
     for (int i = 0; i < vertex_num; i++)
@@ -248,6 +273,8 @@ int main(int argc, char **argv)
     glutInitWindowSize(700, 600);
     glutCreateWindow("ESCALA");
     glClearColor(1.0, 1.0, 1.0, 0.0);
+    // Define a posição da janela
+    glutPositionWindow(10, 10);
     // Registrar os callbacks
     glutDisplayFunc(display_escala);
     glutKeyboardFunc(handleKeypress);
@@ -256,8 +283,8 @@ int main(int argc, char **argv)
     // Cria a segunda janela
     glutCreateWindow("ROTACAO");
     glClearColor(1.0, 1.0, 1.0, 0.0);
-    //define a window position for second window
-    glutPositionWindow(540, 40);
+    // Define a posição da janela
+    glutPositionWindow(100, 40);
     // Registrar os callbacks
     glutReshapeFunc(handleResize);
     glutDisplayFunc(display_rotacao);
@@ -266,8 +293,8 @@ int main(int argc, char **argv)
     // Cria a terceira janela
     glutCreateWindow("TRANSLACAO");
     glClearColor(1.0, 1.0, 1.0, 0.0);
-    //define a window position for second window
-    glutPositionWindow(540, 60);
+    // Define a posição da janela
+    glutPositionWindow(200, 75);
     // Registrar os callbacks
     glutReshapeFunc(handleResize);
     glutDisplayFunc(display_translate);
@@ -281,6 +308,7 @@ int main(int argc, char **argv)
     return 0;
 }
 
+/* Função auxiliar para desenhar um poligono de uma determinada cor a partir do array de Vertices*/
 void drawPolygon(Cor *cor, int vertex_num, Vertex *v_array)
 {
     // Define um poligono, pois não se sabe quantos vertices serão passados
@@ -289,7 +317,26 @@ void drawPolygon(Cor *cor, int vertex_num, Vertex *v_array)
 
     for (int i = 0; i < vertex_num; i++)
     {
-        glVertex2f(v_array[i].x, v_array[i].y);
+        glVertex2d(v_array[i].x, v_array[i].y);
     }
     glEnd();
+}
+
+/* Função auxiliar para montar o nome da janela com os parametros que geram a tranformação.
+* Se angulo for 0, ignora ele e assume que é o vertex que deve ser usado pra montar, caso contrario, use ele.
+* Precisa dar free no titulo retornado.
+*/
+char *monta_nome_janela(const char *funcao, Vertex *v_transf, int angulo)
+{
+    char *titulo = malloc(40 * sizeof(char));
+    if (angulo == 0) //Não considera o angulo
+    {
+        // sprintf formata strings, em vez de imprimir, ela salva em uma variável.
+        sprintf(titulo, "%s X=%.2f Y=%.2f", funcao, v_transf->x, v_transf->y);
+    }
+    else
+    {
+        sprintf(titulo, "%s %d graus", funcao, angulo);
+    }
+    return titulo;
 }
