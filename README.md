@@ -6,13 +6,13 @@ Alunos: Alan, Hugo, Jônatas, Lucas e Vinicius.
 ## Pré-requisitos rodar o trabalho no VsCode
 
 * OpenGl instalado e funcionando na máquina
-* (Opcional, mas bem útil) Extensão _**ms-vscode.cpptools**_ instalada para syntax highlight do código C/C++
+* (Opcional, mas bem úteis) Extensões _**ms-vscode.cpptools**_, _**k--kato.intellij-idea-keybindings**_
 
 ## Como rodar o trabalho no VsCode
 ### Já existem arquivos de configuração com os comandos para compilar e executar o trabalho direto pelo VsCode.
 ### Siga os segintes passos:
 
-* Esteja com o arquivo _**trabalho.c**_  aberto para todos os passos a seguir
+* Esteja com um arquivo _**.c**_  aberto para todos os passos a seguir
 
 * Digite o seguinte atalho para acessar a palheta de comandos do VsCode:
 > Ctrl + Shift + P

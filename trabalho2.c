@@ -1,8 +1,8 @@
+#include <GL/gl.h>
 #include <GL/glut.h>
+#include <GL/glu.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <stdarg.h>
-#include <math.h>
 
 /*
 Grupo 1:
@@ -13,209 +13,118 @@ Lucas,
 Vinicius
 */
 
-/* Struct Vertex para implementar uma estrutura de dados de ponto */
-typedef struct vertex Vertex;
-struct vertex
+typedef struct
 {
-    double x;
-    double y;
-};
+	int x;
+	int y;
+} Ponto;
 
-/*Definindo a struct das cores para facilitar*/
-typedef struct cor Cor;
-struct cor
-{
-    double RED;
-    double GREEN;
-    double BLUE;
-};
+int color[] = {1, 0, 0};
 
-Cor *AZUL;
-Cor *VERMELHO;
-Cor *VERDE;
+/*********** Protótipos ***********/
 
+void drawLine(Ponto *pI, Ponto *pF);
+void setup();
+void display();
 
-char *monta_nome_janela(const char *funcao);
-
-void handleKeypress(unsigned char key, int x, int y)
+int main(int argc, char *argv[])
 {
 
-    switch (key)
+	glutInit(&argc, argv);
 
-    {
+	glutInitDisplayMode(GLUT_RGB | GLUT_DEPTH | GLUT_DOUBLE);
 
-    case 27:
+	glutInitWindowSize(800, 600);
 
-        exit(0);
-    }
+	glutCreateWindow("Trabalho retas otimizadas");
+
+	glutDisplayFunc(display);
+
+	setup();
+
+	glutMainLoop();
+
+	return 0;
 }
 
-void initRendering()
+/* Desenha uma reta otimizada usando apenas operações inteiras*/
+void drawLine(Ponto *pI, Ponto *pF)
 {
 
-    glEnable(GL_DEPTH_TEST);
-}
+	int dx, dy, inc_e, d, inc_ne, x, y, xf;
 
-void handleResize(GLsizei width, GLsizei height)
-{ // GLsizei for non-negative integer
-    // Compute aspect ratio of the new window
-    if (height == 0)
-        height = 1; // To prevent divide by 0
-    GLfloat aspect = (GLfloat)width / (GLfloat)height;
+	dx = pF->x - pI->x; // Variação de X
+	dy = pF->y - pI->y; // Variação de Y
+	d = 2 * dy - dx;	// Valor inicial da equação da reta aplicada com os valores do ponto x0 e y0
 
-    // Set the viewport to cover the new window
-    glViewport(0, 0, width, height);
+	// Incremento de E, caso o valor de 'd' esteja abaixo do ponto Médio
+	// (esse valor é constante pois a diferença de um para o próximo é a mesma)
+	inc_e = 2 * dy;
 
-    // Set the aspect ratio of the clipping area to match the viewport
-    glMatrixMode(GL_PROJECTION); // To operate on the Projection matrix
-    glLoadIdentity();            // Reset the projection matrix
-    if (width >= height)
-    {
-        // aspect >= 1, set the height from -1 to 1, with larger width
-        gluOrtho2D(-1.0 * aspect, 1.0 * aspect, -1.0, 1.0);
-    }
-    else
-    {
-        // aspect < 1, set the width to -1 to 1, with larger height
-        gluOrtho2D(-1.0, 1.0, -1.0 / aspect, 1.0 / aspect);
-    }
-}
+	// Incremento de NE, caso o valor de 'd' esteja acima do ponto Médio
+	// (esse valor é constante pois a diferença de um para o próximo é a mesma)
+	inc_ne = 2 * (dy - dx);
 
-void drawLine(Vertex vtx_i, Vertex vtx_f, Cor *cor)
-{
-    double dx, dy, d, inc_e, inc_ne, x, y, xf;
-
-	dx = vtx_f.x - vtx_i.x; // Calcula dx -> distância entre os pontos no eixo x
-	dy = vtx_f.y - vtx_i.y; // Calcula dy -> distância entre os pontos no eixo y
-	d = 2 * dy - dx; // Variável de decisão -> ponto médio aplicado sobre a equação da reta
-	inc_e = 2 * dy; // Incremento para o ponto inferior
-    inc_ne = 2 * (dy - dx); // Incremento para o ponto superior
-
-    /* X do ponto inicial > x do ponto final -> começa com o ponto "final" */
-	if(vtx_i.x > vtx_f.x)
-    {
-		x = vtx_f.x;	
-		y = vtx_f.y;
-		xf = vtx_i.x;		
+	// Caso o ponto inicial esjeta acima do final, então inverte
+	if ((*pI).x > (*pF).x)
+	{
+		x = (*pF).x;
+		y = (*pF).y;
+		xf = (*pI).x;
 	}
-    /* X do ponto final > x do ponto inical -> começa com o ponto incial */
 	else
-    {
-		x = vtx_i.x;		
-		y = vtx_i.y;
-		xf = vtx_f.x;
+	{
+		x = (*pI).x;
+		y = (*pI).y;
+		xf = (*pF).x;
 	}
 
-	// Plota o primeiro ponto
-    glBegin(GL_POINTS);
-        glColor3d((*cor).RED, (*cor).GREEN, (*cor).BLUE);
-		glVertex2d(x, y);
-	glEnd();
+	glPointSize(3);
+	glBegin(GL_POINTS);
+	glColor3f(color[0], color[1], color[2]);
+	glVertex2i(x, y);
 
-	glFlush();
-
-	while(x < xf)
-    {
-		x+=0.001;
-
-		/* -> d < 0
-         *  -> incrementa apenas x
-         *  -> calcula o novo d somando o antigo d com dy
-         */
-        if(d < 0) 
+	while (x < xf)
+	{
+		//TODO continuar a comentar
+		if (d < 0)
+		{
+			// Se d está
 			d += inc_e;
-
-        /* -> d = 0 ou d > 0
-         *  -> ponto médio superior
-         *  -> incrementa x e y
-         *  -> calcula o novo d somando o antigo d com (dy - dx)
-         */
-		else 
-        {
-			y+=0.001; 
-			d += inc_ne; 
+			x++; //Vai andando no eixo X
+		}
+		else
+		{
+			x++; //Vai andando no eixo X
+			y++;
+			d += inc_ne;
 		}
 
-		// Plota o ponto calculado
-        glBegin(GL_POINTS);
-            glColor3d((*cor).RED, (*cor).GREEN, (*cor).BLUE);
-			glVertex2d(x, y);
-		glEnd();
-
-		glFlush();		
-	}	
-
+		glVertex2i(x, y);
+	}
+	glEnd();
+	glFlush();
 }
 
-void display_line(void)
+void setup()
 {
-
-    /* Array base das transformações*/
-    Vertex v_array[] =
-        {
-            {.x = 0.25, .y = 0.25},
-            {.x = 0.50, .y = 0.25}
-        };
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glClearColor(1.0, 1.0, 1.0, 0.0);
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-
-
-    // Título da janela
-    char *titulo = monta_nome_janela("Desenhando linha");
-    glutSetWindowTitle(titulo);
-    // Desenha a linha
-    drawLine(v_array[0], v_array[1], VERMELHO);
-
-    glutSwapBuffers();
-    free(titulo);
+	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+	gluOrtho2D(0, 800, 0, 600);
 }
 
-int main(int argc, char **argv)
+void display()
 {
-    /*Definindo as cores para facilitar    */
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    AZUL = (Cor *)calloc(1, sizeof(Cor));
-    VERMELHO = (Cor *)calloc(1, sizeof(Cor));
-    VERDE = (Cor *)calloc(1, sizeof(Cor));
-    (*AZUL).BLUE = 1;
-    (*VERMELHO).RED = 1;
-    (*VERDE).GREEN = 1;
+	Ponto i, f;
 
-    glutInit(&argc, argv);
-    initRendering();
-    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
+	i.x = 0,
+	i.y = 0;
 
-    // Cria a primeira janela
-    glutInitWindowSize(700, 600);
-    glutCreateWindow("LINHA");
-    glClearColor(1.0, 1.0, 1.0, 0.0);
-    // Define a posição da janela
-    glutPositionWindow(10, 10);
-    // Registrar os callbacks
-    glutDisplayFunc(display_line);
-    glutKeyboardFunc(handleKeypress);
-    glutReshapeFunc(handleResize);
+	f.x = 600;
+	f.y = 300;
 
-    glutMainLoop();
+	drawLine(&i, &f);
 
-    free(AZUL);
-    free(VERDE);
-    free(VERMELHO);
-    return 0;
-}
-
-
-/* Função auxiliar para montar o nome da janela com os parametros que geram a tranformação.
-* Se angulo for 0, ignora ele e assume que é o vertex que deve ser usado pra montar, caso contrario, use ele.
-* Precisa dar free no titulo retornado.
-*/
-char *monta_nome_janela(const char *funcao)
-{
-    char *titulo = malloc(40 * sizeof(char));
-    // sprintf formata strings, em vez de imprimir, ela salva em uma variável.
-    sprintf(titulo, "%s", funcao);
-    
-    return titulo;
+	glutSwapBuffers();
 }
