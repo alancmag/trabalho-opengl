@@ -13,12 +13,6 @@ Lucas,
 Vinicius
 */
 
-typedef struct
-{
-	int x;
-	int y;
-} Ponto;
-
 int color[] = {0};
 
 /*********** Protótipos ***********/
@@ -56,27 +50,29 @@ void drawMidPointCircle(int raio)
 	/*Valores iniciais*/
 	x = 0;
 	y = raio;
+	// Primeiro d é a função da circunferência no ponto médio x = 1 e y = R-1/2, que é o ponto médio do primeiro ponto x=0, e y = R
 	d = 5 / 4 - raio;
 
 	circlePoints(x, y);
 
+	// Enquanto x e y estão no segundo octante
 	while (y > x)
 	{
-		//TODO continuar a comentar
+
 		if (d < 0)
 		{
 			// Seleciona E
-			// Se d está
-			d = d + 2 * x + 3;
-			x++; //Vai andando no eixo X
+			// Se d é negativo, o ponto médio entre E e SE está dentro da circunferência, então E está mais proximo da 'linha' da circunferencia
+			d = d + 2 * x + 3; // Esse incremento é a diferença entre o Dnew e o Dold
+			x++;			   //Vai andando no eixo X
 		}
 		else
 		{
 			// Seleciona SE
-			// Se d está
-			d = d + 2 * (x - y) + 5;
-			x++; //Vai andando no eixo X
-			y--;
+			// Se d é positivo, o ponto médio entre E e SE está fora da circunferência, então SE está mais proximo da 'linha' da circunferencia
+			d = d + 2 * (x - y) + 5; // Esse incremento é a diferença entre o Dnew e o Dold
+			x++;					 //Vai andando no eixo X
+			y--;					 // Diminui o Y
 		}
 
 		circlePoints(x, y);
